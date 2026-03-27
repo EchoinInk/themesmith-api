@@ -138,16 +138,16 @@ def generate_icon_pack(payload: IconPackRequest):
                 transparent_background=payload.transparent_background,
             )
 
-            print(f"Generating test icon for: {app_name}")
-            print(f"Prompt: {prompt}")
+            print(f"Generating placeholder icon for: {app_name}")
+print(f"Prompt: {prompt}")
 
-            image_bytes = make_test_icon(app_name)
+image_bytes = make_test_icon(app_name)
 
-            filename = f"{uuid.uuid4().hex}_{app_name.lower().replace(' ', '_')}.png"
-            filepath = os.path.join(OUTPUT_DIR, filename)
+filename = f"{uuid.uuid4().hex}_{app_name.lower().replace(' ', '_')}.png"
+filepath = os.path.join(OUTPUT_DIR, filename)
 
-            with open(filepath, "wb") as f:
-                f.write(image_bytes)
+with open(filepath, "wb") as f:
+    f.write(image_bytes)
 
             file_url = f"{BASE_URL}/generated_icons/{filename}"
             results.append(IconResult(app_name=app_name, icon_url=file_url))

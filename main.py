@@ -26,20 +26,32 @@ APP_COLORS = {
 
 def make_test_icon(app_name: str) -> bytes:
     size = 1024
+    icon_size = 700  # smaller centered icon
     color = APP_COLORS.get(app_name, "#444444")
 
-    img = Image.new("RGB", (size, size), color)
+    # Transparent background
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
+
+    # Draw rounded square
+    x0 = (size - icon_size) // 2
+    y0 = (size - icon_size) // 2
+    x1 = x0 + icon_size
+    y1 = y0 + icon_size
+
+    draw.rounded_rectangle(
+        [x0, y0, x1, y1],
+        radius=180,
+        fill=color
+    )
 
     try:
         font = ImageFont.truetype("arial.ttf", 120)
-    except Exception:
+    except:
         font = ImageFont.load_default()
 
     text = app_name[:8]
-    bbox = draw.textbbox((0, 0), text, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
+    text_width, text_height = draw.textbbox((0, 0), text, font=font)[2:]
 
     text_x = (size - text_width) / 2
     text_y = (size - text_height) / 2

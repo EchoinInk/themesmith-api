@@ -9,7 +9,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Load .env from the same folder as this file
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
@@ -44,10 +43,12 @@ class IconPackResponse(BaseModel):
 
 
 def make_placeholder_png() -> bytes:
-    # 1x1 transparent PNG
+    # simple visible PNG
     png_base64 = (
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8"
-        "/w8AAn8B9pQnWQAAAABJRU5ErkJggg=="
+        "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAmUlEQVR4nO3PQQ0AIBDAsAP/"
+        "nuGNAvZoFSzZnpl5r3P43rod8AqjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMC"
+        "owKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMC"
+        "owKjAqMCowKjAqMCowKjAqMCowKjAqPCAboLAX2Nr4MsAAAAAElFTkSuQmCC"
     )
     return base64.b64decode(png_base64)
 
@@ -77,10 +78,7 @@ def build_prompt(
 
 @app.get("/")
 def root():
-    return {
-        "status": "ok",
-        "message": "ThemeSmith API is running"
-    }
+    return {"status": "ok", "message": "ThemeSmith API is running"}
 
 
 @app.post("/generate_icon_pack", response_model=IconPackResponse)
@@ -116,7 +114,4 @@ def generate_icon_pack(payload: IconPackRequest):
 
     except Exception as e:
         print("Unexpected error in /generate_icon_pack:", repr(e))
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected server error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Unexpected server error: {str(e)}")

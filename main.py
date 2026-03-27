@@ -1,6 +1,7 @@
 import os
 import uuid
 import base64
+import io
 from pathlib import Path
 from typing import List, Optional
 
@@ -8,6 +9,46 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from PIL import Image, ImageDraw, ImageFont
+
+APP_COLORS = {
+    "Phone": "#34C759",
+    "Messages": "#007AFF",
+    "Safari": "#FF3B30",
+    "Camera": "#AF52DE",
+    "Photos": "#FF9500",
+    "Settings": "#8E8E93",
+    "Mail": "#1C1C1E",
+    "Clock": "#FFCC00",
+    "Calendar": "#FF2D55",
+    "Notes": "#FFD60A",
+}
+
+def make_test_icon(app_name: str) -> bytes:
+    size = 1024
+    color = APP_COLORS.get(app_name, "#444444")
+
+    img = Image.new("RGB", (size, size), color)
+    draw = ImageDraw.Draw(img)
+
+    try:
+        font = ImageFont.truetype("arial.ttf", 120)
+    except Exception:
+        font = ImageFont.load_default()
+
+    text = app_name[:8]
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    text_x = (size - text_width) / 2
+    text_y = (size - text_height) / 2
+
+    draw.text((text_x, text_y), text, fill="white", font=font)
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -40,17 +81,6 @@ class IconResult(BaseModel):
 class IconPackResponse(BaseModel):
     theme_name: str
     icons: List[IconResult]
-
-
-def make_placeholder_png() -> bytes:
-    # simple visible PNG
-    png_base64 = (
-        "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAmUlEQVR4nO3PQQ0AIBDAsAP/"
-        "nuGNAvZoFSzZnpl5r3P43rod8AqjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMC"
-        "owKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMCowKjAqMC"
-        "owKjAqMCowKjAqMCowKjAqMCowKjAqPCAboLAX2Nr4MsAAAAAElFTkSuQmCC"
-    )
-    return base64.b64decode(png_base64)
 
 
 def build_prompt(
@@ -96,10 +126,10 @@ def generate_icon_pack(payload: IconPackRequest):
                 transparent_background=payload.transparent_background,
             )
 
-            print(f"Generating placeholder icon for: {app_name}")
+            print(f"Generating test icon for: {app_name}")
             print(f"Prompt: {prompt}")
 
-            image_bytes = make_placeholder_png()
+            image_bytes = make_test_icon(app_name)
 
             filename = f"{uuid.uuid4().hex}_{app_name.lower().replace(' ', '_')}.png"
             filepath = os.path.join(OUTPUT_DIR, filename)
